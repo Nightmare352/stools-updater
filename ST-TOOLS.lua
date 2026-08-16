@@ -161,37 +161,85 @@ encoding.default = 'cp1251'
 local u8 = encoding.UTF8
 local function recode(u8) return encoding.UTF8:decode(u8) end
 
--- Функция для конвертации файла из UTF-8 в cp1251
+-- Функция для конвертации файла из UTF-8 в cp1251 с использованием iconv
 local function convertFileEncoding(filePath)
     if not doesFileExist(filePath) then
+        print('[convertFileEncoding] Файл не существует: ' .. filePath)
         return false
     end
     
-    local file = io.open(filePath, 'rb')
-    if not file then
-        return false
+    local success, iconv_module = pcall(require, 'iconv')
+    if success and iconv_module then
+        print('[convertFileEncoding] Используем iconv для конвертации')
+        -- Используем iconv для правильной конвертации
+        local converter = iconv_module.new('cp1251', 'UTF-8')
+        if not converter then 
+            print('[convertFileEncoding] Не удалось создать конвертер iconv')
+            return false 
+        end
+        
+        local file = io.open(filePath, 'rb')
+        if not file then 
+            print('[convertFileEncoding] Не удалось открыть файл для чтения')
+            return false 
+        end
+        local content = file:read('*a')
+        file:close()
+        print('[convertFileEncoding] Прочитано ' .. string.len(content) .. ' байт')
+        
+        local converted = converter:iconv(content)
+        if not converted then 
+            print('[convertFileEncoding] Ошибка конвертации iconv')
+            return false 
+        end
+        
+        file = io.open(filePath, 'wb')
+        if not file then 
+            print('[convertFileEncoding] Не удалось открыть файл для записи')
+            return false 
+        end
+        file:write(converted)
+        file:close()
+        print('[convertFileEncoding] Файл успешно записан после конвертации (' .. string.len(converted) .. ' байт)')
+        return true
+    else
+        print('[convertFileEncoding] iconv недоступна, пытаемся сохранить с UTF-8 BOM')
+        -- Попытаемся сохранить файл с UTF-8 BOM, чтобы Moonloader правильно определил кодировку
+        local file = io.open(filePath, 'rb')
+        if not file then 
+            print('[convertFileEncoding] Не удалось открыть файл для чтения')
+            return false 
+        end
+        local content = file:read('*a')
+        file:close()
+        
+        -- UTF-8 BOM
+        local utf8_bom = '\239\187\191'  -- EF BB BF в decimal
+        
+        -- Проверяем, есть ли уже BOM
+        if content:sub(1, 3) == utf8_bom then
+            print('[convertFileEncoding] UTF-8 BOM уже присутствует в файле')
+        else
+            print('[convertFileEncoding] Добавляем UTF-8 BOM к файлу')
+            content = utf8_bom .. content
+        end
+        
+        file = io.open(filePath, 'wb')
+        if not file then 
+            print('[convertFileEncoding] Не удалось открыть файл для записи')
+            return false 
+        end
+        file:write(content)
+        file:close()
+        print('[convertFileEncoding] Файл успешно переписан с UTF-8 BOM')
+        return true
     end
-    
-    local content = file:read('*a')
-    file:close()
-    
-    -- Конвертируем из UTF-8 в cp1251
-    local converted = encoding.UTF8:decode(content)
-    
-    file = io.open(filePath, 'wb')
-    if not file then
-        return false
-    end
-    
-    file:write(converted)
-    file:close()
-    return true
 end
 
 --======================================================================================================================================--
 
 
-script_ver = '1.1 release'
+script_ver = '1.2 release'
 
 interface_ver = '1.0 release'
 
@@ -199,7 +247,7 @@ release_date = '10.08.2026'
 
 
 script_name("ST-TOOLS")
-script_version("1.1 release")
+script_version("1.2 release")
 
 --======================================================================================================================================--
 
@@ -1880,6 +1928,7 @@ local newFrame = imgui.OnFrame(
 
 										imgui.CenterText(u8'Версия 1.1')
 
+										imgui.CenterText(u8'Версия 1.2')
 
 
 
@@ -4624,12 +4673,23 @@ function autoupdate(json_url, prefix, url)
                       goupdatestatus = true
                       -- Добавляем конвертацию кодировки и задержку перед перезагрузкой
                       lua_thread.create(function() 
-                        wait(500) 
-                        -- Конвертируем кодировку файла из UTF-8 в cp1251
-                        if convertFileEncoding(thisScript().path) then
-                          print('Кодировка файла успешно конвертирована.')
+                        wait(1000)  -- Ждём 1 секунду для завершения записи на диск
+                        -- Конвертируем кодировку файла из UTF-8 в cp1251 с повторами
+                        local success = false
+                        for attempt = 1, 3 do
+                          if convertFileEncoding(thisScript().path) then
+                            print('[Attempt '..attempt..'] Кодировка файла успешно конвертирована.')
+                            success = true
+                            break
+                          else
+                            print('[Attempt '..attempt..'] Не удалось конвертировать кодировку, пытаюсь снова...')
+                            wait(500)
+                          end
                         end
-                        wait(500)
+                        if not success then
+                          print('[WARNING] Не удалось конвертировать кодировку файла!')
+                        end
+                        wait(1000)  -- Ждём перед перезагрузкой
                         thisScript():reload() 
                       end)
                     end
