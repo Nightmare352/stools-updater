@@ -158,13 +158,14 @@ if not success then
 end
 encoding.default = "CP1251"
 local u8 = encoding.UTF8
---local function recode(u8) return encoding.UTF8:decode(u8) end
+
+function recode(u8) return encoding.UTF8:decode(u8) end
 
 
 --======================================================================================================================================--
 
 
-script_ver = '1.2 release'
+script_ver = '1.3 release'
 
 interface_ver = '1.0 release'
 
@@ -172,7 +173,7 @@ release_date = '10.08.2026'
 
 
 script_name("ST-TOOLS")
-script_version("1.2 release")
+script_version("1.3 release")
 
 --======================================================================================================================================--
 
@@ -1856,6 +1857,7 @@ local newFrame = imgui.OnFrame(
 
 										imgui.CenterText(u8'Версия 1.2')
 
+										imgui.CenterText(u8'Версия 1.3')
 
 									imgui.PopFont()
 								elseif menu == 3 then
