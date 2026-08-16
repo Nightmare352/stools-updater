@@ -157,9 +157,9 @@ if not success then
     print("[WARNING] Не удалось загрузить библиотеку inicfg.")
 end
 
-encoding.default = "cp1251"
-local u8 = encoding.UTF8
-local function recode(u8) return encoding.UTF8:decode(u8) end
+encoding.default = 'cp1251'
+--local u8 = encoding.UTF8
+local function u8(s) return encoding.UTF8:decode(s) end
 
 
 --======================================================================================================================================--
@@ -1857,7 +1857,6 @@ local newFrame = imgui.OnFrame(
 
 										imgui.CenterText(u8'Версия 1.2')
 
-										imgui.CenterText(u8'Версия 1.3')
 
 									imgui.PopFont()
 								elseif menu == 3 then
