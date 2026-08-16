@@ -156,10 +156,10 @@ local success, inicfg = pcall(require, "inicfg")
 if not success then
     print("[WARNING] Не удалось загрузить библиотеку inicfg.")
 end
-encoding.default = "CP1251"
-local u8 = encoding.UTF8
 
-function recode(u8) return encoding.UTF8:decode(u8) end
+encoding.default = "cp1251"
+local u8 = encoding.UTF8
+local function recode(u8) return encoding.UTF8:decode(u8) end
 
 
 --======================================================================================================================================--
