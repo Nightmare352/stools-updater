@@ -165,7 +165,7 @@ local function recode(u8) return encoding.UTF8:decode(u8) end
 --======================================================================================================================================--
 
 
-script_ver = '1.0 release'
+script_ver = '1.1 release'
 
 interface_ver = '1.0 release'
 
@@ -173,7 +173,7 @@ release_date = '10.08.2026'
 
 
 script_name("ST-TOOLS")
-script_version("1.0 release")
+script_version("1.1 release")
 
 
 
@@ -1871,6 +1871,12 @@ local newFrame = imgui.OnFrame(
 								elseif menu == 2 then
 									imgui.PushFont(font_zagolovkivkladok)
 										imgui.CenterText(u8'В РАЗРАБОТКЕ')
+
+
+										imgui.CenterText(u8'Версия 1.2')
+
+
+
 									imgui.PopFont()
 								elseif menu == 3 then
 									imgui.PushFont(font_zagolovkivkladok)
