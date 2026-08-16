@@ -1856,6 +1856,8 @@ local newFrame = imgui.OnFrame(
 										imgui.CenterText(u8'Версия 1.1')
 
 										imgui.CenterText(u8'Версия 1.2')
+			
+										imgui.CenterText(u8'Версия 1.3')
 
 
 									imgui.PopFont()
